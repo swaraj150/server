@@ -55,10 +55,7 @@ router.post('/newtransaction',[fetchuser,ErrorHandler],[
         success=true;
         res.json({success,savetransactions});
     }catch (error){
-        // if(error instanceof Error){
-        //     console.error(error.message);
-        //     res.status(400).send({msg:error.message});
-        // }
+
         console.error(error.message);
         res.status(500).send({success,message:error.message});
     }
