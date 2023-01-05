@@ -4,6 +4,8 @@ const User=require("../models/Customer");
 const fetchuser=require("../middleware/fetchuser");
 const Transactions=require("../models/Transaction");
 const {body,validationResult}=require("express-validator");
+const ErrorHandler=require("../middleware/ErrorHandler")
+
 // Route 1: Get all the transactions of a particular user using GET: "/api/transactions/fetchtransactions": login required
 router.get('/fetchtransactions',fetchuser,async (req,res)=>{
     try {
@@ -28,7 +30,7 @@ router.get('/fetchtransfers',async (req,res)=>{
     }
 });
 // Route 2: a new transaction using Post: "/api/transactions/fetchtransactions":login required
-router.post('/newtransaction',fetchuser,[
+router.post('/newtransaction',[fetchuser,ErrorHandler],[
     body("amount","Enter a Valid amount").isLength({min:1}),
     body("account","Enter a Valid account no").exists()
 ],async (req,res)=>{
@@ -46,15 +48,19 @@ router.post('/newtransaction',fetchuser,[
         const transaction = new Transactions({
             amount,account,receiver,sender:req.user.id
         });
-        
         await User.findOneAndUpdate({account},{$set:{balance:receiver.balance+amount2}},{new:true});
         await User.findByIdAndUpdate(req.user.id,{$set:{balance:sender1.balance-amount2}},{new:true});
+
         const savetransactions=await transaction.save();
         success=true;
         res.json({success,savetransactions});
-    } catch (error){
+    }catch (error){
+        // if(error instanceof Error){
+        //     console.error(error.message);
+        //     res.status(400).send({msg:error.message});
+        // }
         console.error(error.message);
-        res.status(500).send("Internal Server error")
+        res.status(500).send({success,message:error.message});
     }
 });
 
