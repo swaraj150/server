@@ -58,6 +58,10 @@ router.post('/newtransaction',[fetchuser,ErrorHandler],[
         success=true;
         res.json({success,savetransactions});
     }catch (error){
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1e34ac1bb88c1059a16d9e40c215256f9d549f33
         console.error(error.message);
         res.status(500).send({success,message:error.message});
     }
