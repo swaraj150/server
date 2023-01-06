@@ -9,8 +9,10 @@ const ErrorHandler=require("../middleware/ErrorHandler")
 // Route 1: Get all the transactions of a particular user using GET: "/api/transactions/fetchtransactions": login required
 router.get('/fetchtransactions',fetchuser,async (req,res)=>{
     try {
-        const transactions=await Transactions.find({user:req.user.id});
-        res.json(transactions);
+        const transactions_paid=await Transactions.find({sender:req.user.id});
+        const transactions_recieved=await Transactions.find({receiver:req.user.id});
+
+        res.json({transactions_paid,transactions_recieved});
         
     } catch (error) {
         console.error(error.message);
@@ -44,21 +46,18 @@ router.post('/newtransaction',[fetchuser,ErrorHandler],[
         let receiver=await User.findOne({account});
         let sender1=await User.findById(req.user.id);
         let amount2=parseInt(amount);
-
         const transaction = new Transactions({
-            amount,account,receiver,sender:req.user.id
+            amount:req.body.amount,
+            account:req.body.account,
+            receiver:receiver,
+            sender:sender1
         });
         await User.findOneAndUpdate({account},{$set:{balance:receiver.balance+amount2}},{new:true});
         await User.findByIdAndUpdate(req.user.id,{$set:{balance:sender1.balance-amount2}},{new:true});
-
         const savetransactions=await transaction.save();
         success=true;
         res.json({success,savetransactions});
     }catch (error){
-        // if(error instanceof Error){
-        //     console.error(error.message);
-        //     res.status(400).send({msg:error.message});
-        // }
         console.error(error.message);
         res.status(500).send({success,message:error.message});
     }
